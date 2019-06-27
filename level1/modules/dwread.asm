@@ -37,6 +37,10 @@
                     use dwread/dwread_sy6551.asm
                     endc
 
+                    ifne      MC2681
+                    use dwread/dwread_mc2681.asm
+                    endc
+
                     ifne      JMCPBCK
                     use dwread/dwread_jmpcbck.asm
                     endc
@@ -53,7 +57,7 @@
                     use dwread/dwread_bb38400.asm
                     endc
 
-                    ifeq      BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+BAUD38400+wildbits+MEGAMINIMPI
+                    ifeq      BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+MC2681+BAUD38400+wildbits+MEGAMINIMPI
                     ifeq      H6309
                     use dwread/dwread_bb6809.asm
                     else

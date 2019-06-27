@@ -13,6 +13,12 @@
 *
 *   2r0    2005/11/26  Boisy G. Pitre
 * Added -t and -n options, ala OS-9/68K.
+*
+*   3r0    2025/12/15  Mark R. V. Murray
+* Use ST-2900 conditionals to remove -b[=foo] option as ST-2900 does
+* not need os9gen, cobbler etc; it looks for the OS9Kernel and OS9Boot
+* files using the root directory, first sector only, and reads the
+* OS9Kernel/OS9Boot in directly.
 
                     nam       dsave
                     ttl       Multi-file copy utility
@@ -31,7 +37,7 @@ PARMSZ              set       256                 estimated parameter size in by
 tylg                set       Prgrm+Objct
 atrv                set       ReEnt+rev
 rev                 set       $00
-edition             set       2
+edition             set       3
 
                     mod       eom,name,tylg,atrv,start,size
 
@@ -129,10 +135,12 @@ Unlink              fcc       "unlink"
 Copy                fcc       "copy"
                     fcb       C$CR
 
+                    ifeq      st2900
 OS9Gen              fcc       "os9gen"
                     fcb       C$CR
 
 OS9Boot             fcs       "OS9Boot"
+                    endc
 
 DotDot              fcc       "."
 Dot                 fcc       "."
@@ -211,6 +219,7 @@ GetDash             lda       #C$SPAC             get a space char
                     sta       -1,x                and wipe out the dash from the cmd line
 GetDash2            ldd       ,x+                 load option char and char following
                     ora       #$20                make lowercase
+                    ifeq      st2900
 IsItB               cmpa      #'b                 is it this option?
                     bne       IsItE               branch if not
                     sta       <doboot
@@ -254,6 +263,7 @@ IsItBLp             sta       ,-x
                     clrb                          so FixCmdLn will not look for more opts
 IsItBEx             puls      x
                     bra       FixCmdLn
+                    endc
 IsItE               equ       *
 *         cmpa  #'e		is it this option?
 *         bne   IsItI		branch if not
@@ -450,7 +460,9 @@ ItsADir2            ldx       3,s
                     bra       FileLoop
 
 * Here, we know that the file we just opened and closed was NOT a directory
-ItsAFile            tst       <dirlevel           are we at root level?
+ItsAFile
+                    ifeq      st2900
+                    tst       <dirlevel           are we at root level?
                     bne       ItsAFile2           no, don't even do os9boot test
                     ldx       1,s                 else get ptr to current filename
                     lbsr      BootCmp             is it os9boot?
@@ -462,6 +474,7 @@ ItsAFile            tst       <dirlevel           are we at root level?
 * We must os9gen the sucker
                     lbsr      BuildOS9Gen
                     bra       FileLoop
+                    endc
 
 ItsAFile2
                     ldx       1,s
@@ -544,6 +557,7 @@ ParmFnLp            lda       ,x+
 ParmFnEx            tfr       u,d
                     puls      u,pc
 
+                    ifeq  st2900
 * Compare two filenames to see if they match
 * X = filename to compare against OS9boot
 BootCmp             pshs      y,x
@@ -553,6 +567,7 @@ BootCmp             pshs      y,x
                     leay      OS9Boot,pcr
                     os9       F$CmpNam
                     puls      y,pc
+                    endc
 
 MakeUp              cmpa      #'a
                     blt       MakeUpEx
@@ -753,6 +768,7 @@ DoUnlinkCopy
                     lbra      WriteIt
 *         bra   ExecCmd
 
+                    ifeq  st2900
 BuildOS9Gen
                     pshs      x
                     leax      OS9Gen,pcr
@@ -769,6 +785,7 @@ BuildOS9Gen
                     leax      CR,pc
                     lbsr      WriteIt
                     puls      x,pc
+                    endc
 
 BuildCmp            pshs      x
                     leax      Cmp,pcr

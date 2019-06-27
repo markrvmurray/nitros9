@@ -25,6 +25,9 @@ DSKDIR		= $(NITROS9DIR)/dsks
 #AS		= os9 /mnt2/src/ocem/os9/asm
 #ASOUT		= o=
 
+# Uncomment this to get .lst files
+#LISTDIR         = .
+
 # Use the cross assembler
 #AS		= os9asm -i=$(DEFSDIR)
 AS		= lwasm --no-warn=ifp1 --6309 --format=os9 --pragma=pcaspcr,nosymbolcase,condundefzero,undefextern,dollarnotlocal,noforwardrefmax --includedir=$(DEFSDIR)
@@ -63,7 +66,7 @@ IDENT_SHORT	= $(IDENT) -s
 OS9FORMAT	= os9 format -e
 OS9FORMAT_SS35	= os9 format -e -t35 -ss -dd
 OS9FORMAT_SS40	= os9 format -e -t40 -ss -dd
-OS9FORMAT_SS80	= os9 format -e -t80 -ss -dd
+OS9FORMAT_SS80	= os9 format -e -t80 -ss -dd -9
 OS9FORMAT_DS40	= os9 format -e -t40 -ds -dd
 OS9FORMAT_DS80	= os9 format -e -t80 -ds -dd
 OS9FORMAT_DW	= os9 format -t29126 -ss -dd

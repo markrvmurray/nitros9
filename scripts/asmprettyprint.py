@@ -99,11 +99,13 @@ def processLine(args, l):
                 labelWidth -= 2
                 opcodeWidth -=2
                 operandWidth -= 2
+            else:
+                opcode = opcode.lower()
             # if there's a second token AND the first token takes an operand, the second token is an operand
             if len(tokens) > startIndex + 1 and opcode not in opcodesWithoutOperands:
                 operand = tokens[startIndex + 1]
                 if len(tokens) > startIndex + 2:
-                    if opcode in opcodesWithOperandsThatCanHaveSpaces:
+                    if opcode.lower() in opcodesWithOperandsThatCanHaveSpaces:
                         operand = l.split(None, startIndex + 1)[startIndex + 1]
                     else:
                         comment = l.split(None, startIndex + 2)[startIndex + 2]
