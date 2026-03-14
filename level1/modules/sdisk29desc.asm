@@ -14,7 +14,7 @@ TyLg                set       Devic+Objct
 atrv                set       ReEnt+Rev
 Rev                 set       1
 
-                    IFNDEF    DNum
+                    ifndef    DNum
 DNum                set       0
                   ENDC
                   IFNE    D35
@@ -22,27 +22,27 @@ Type                set       TYP.CCF+TYP.3
                   ELSE
 Type                set       TYP.CCF+TYP.5
                   ENDC
-                    IFNDEF    Density
+                    ifndef    Density
 Density             set       DNS.MFM
                   ENDC
 Step                set       STP.12ms
-                    IFNDEF    Cyls
+                    ifndef    Cyls
 Cyls                set       40
                   ENDC
-                    IFNDEF    Sides
+                    ifndef    Sides
 Sides               set       1
                   ENDC
 Verify              set       0
-                    IFNDEF    SectTrk
+                    ifndef    SectTrk
 SectTrk             set       18
                   ENDC
-                    IFNDEF    SectTrk0
+                    ifndef    SectTrk0
 SectTrk0            set       18
                   ENDC
-                    IFNDEF    Interlv
+                    ifndef    Interlv
 Interlv             set       4
                   ENDC
-                    IFNDEF    SAS
+                    ifndef    SAS
 SAS                 set       8
                   ENDC
 

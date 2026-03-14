@@ -1,20 +1,14 @@
-include ../port.mak $(BOOT_BLOCK)
+include ../port.mak
 
 vpath %.asm $(LEVEL1)/modules
 
 AFLAGS		+= -I$(LEVEL1)/$(PORT)
 AFLAGS		+= -I$(LEVEL1)/modules
 
-ST29FLAGS       = $(AFLAGS) $(FLAGS)
-
 DEPENDS		= ./makefile
 
-KERNEL_PARTS	= krn krnp2 init_st2900 boot_st2900
-BOOT		= boot_st2900
-KERNEL		= kernel_st2900
-
 SYSMODS		= ioman sysgo1
-CLOCKS          = clock_st2900 clock2_dw
+CLOCKS		= clock_st2900 clock2_dw
 
 RBF		= rbf.mn \
 		sdisk29.dr \
@@ -39,9 +33,9 @@ PIPE		= pipeman.mn \
 		piper.dr \
 		pipe.dd
 
-ALLOBJS		= $(KERNEL_PARTS) $(SYSMODS) $(CLOCKS) $(RBF) $(SCF) $(PIPE)
+KERNEL		= krn krnp2 init_st2900 boot_st2900
 
-*FEXX		= boot_st2900_data
+ALLOBJS		= $(KERNEL) $(SYSMODS) $(CLOCKS) $(RBF) $(SCF) $(PIPE)
 
 all:	$(ALLOBJS)
 
@@ -57,6 +51,10 @@ DSDD40		= -DCyls=40 -DSides=2 -DSectTrk=18 -DSectTrk0=18 \
 		-DInterlv=4 -DSAS=8 -DDensity=1
 DSDD80		= -DCyls=80 -DSides=2 -DSectTrk=18 -DSectTrk0=18 \
 		-DInterlv=4 -DSAS=8 -DDensity=1 -DD35
+DSSD40		= -DCyls=40 -DSides=2 -DSectTrk=10 -DSectTrk0=10 \
+		-DInterlv=4 -DSAS=8 -DDensity=0
+DSSD80		= -DCyls=80 -DSides=2 -DSectTrk=10 -DSectTrk0=10 \
+		-DInterlv=4 -DSAS=8 -DDensity=0 -DD35
 
 ddd0_35s.dd: sdisk29desc.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(SSDD35) -DDNum=0 -DDD=1
@@ -89,16 +87,16 @@ d3_40d.dd: sdisk29desc.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD40) -DDNum=3
 
 sd0_40d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD40) -DDNum=0
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD40) -DDNum=0
 
 sd1_40d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD40) -DDNum=1
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD40) -DDNum=1
 
 sd2_40d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD40) -DDNum=2
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD40) -DDNum=2
 
 sd3_40d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD40) -DDNum=3
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD40) -DDNum=3
 
 ddd0_80d.dd: sdisk29desc.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=0 -DDD=1
@@ -116,16 +114,16 @@ d3_80d.dd: sdisk29desc.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=3
 
 sd0_80d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=0
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD80) -DDNum=0
 
 sd1_80d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=1
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD80) -DDNum=1
 
 sd2_80d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=2
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD80) -DDNum=2
 
 sd3_80d.dd: sdisk29desc.asm
-	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSDD80) -DDNum=3
+	$(AS) $< $(ASOUT)$@ $(AFLAGS) $(DSSD80) -DDNum=3
 
 # DriveWire 3 RBF descriptors
 ddx0.dd: dwdesc.asm
@@ -150,8 +148,8 @@ term_mc2681.dd: term_mc2681.asm
 t1_mc2681.dd: term_mc2681.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) -DTNum=1
 
-# DriveWire Submodule at 38400 baud for ST-2900
-dwio_mc2681.sb:	dwio.asm dwread.asm dwwrite.asm dwinit.asm
+# DriveWire subroutine module (38400 baud via MC2681 port B)
+dwio_mc2681.sb: dwio.asm dwread.asm dwwrite.asm dwinit.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) -DMC2681=1
 
 # DriveWire 3 SCF descriptors
@@ -209,7 +207,7 @@ clock_st2900: clock_st2900.asm
 
 clean:
 	$(CD) kernel; make $@
-	$(RM) $(ALLOBJS)
+	$(RM) $(ALLOBJS) *.list *.map
 
 showobjs:
 	@$(ECHO) $(ALLOBJS)
@@ -234,5 +232,3 @@ showpipe:
 
 identify:
 	$(IDENT_SHORT) $(ALLOBJS)
-
-

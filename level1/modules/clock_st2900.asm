@@ -1,6 +1,6 @@
 *****************************************
 *   "Clock" module for ST-2900 system
-* Running Radio Shack Coco version of OS-9
+* NitrOS-9 clock using MC2681 DUART timer
 *    (c) 1984 by David C. Wiens
 * Last modified June 19, 1985 9:00 pm
 *****************************************
@@ -15,7 +15,7 @@
 ****************************************
 * header and constants
 ****************************************
-TPS                 EQU       10        Ticks per second
+TPS                 equ       50        Ticks per second
 
 TyLg                set       Systm+Objct
 AtRv                set       ReEnt+Rev
@@ -27,153 +27,155 @@ Edition             set       3
 Name                fcs       "Clock"
                     fcb       Edition
 
-Divide              FDB       11520     Time constant for DUART clock timer (10 hz)
+* DUART counter/timer constant = crystal / 16 / ticks per second
+* 3.6864 MHz / 16 = 230400 Hz; 230400 / 50 = 4608
+Divide              fdb       4608      Time constant for DUART clock timer (50 hz)
 *
 * packet to define f$time svc
 *
-TIMSVC              FCB       F$Time
-                    FDB       GetTime-*-2 offset to handler
-                    FCB       $80
+TIMSVC              fcb       F$Time
+                    fdb       GetTime-*-2 offset to handler
+                    fcb       $80
 *
 * table of days per month
 *
-Month               FCB       0
-                    FCB       31,28,31,30
-                    FCB       31,30,31,31
-                    FCB       30,31,30,31
+Month               fcb       0
+                    fcb       31,28,31,30
+                    fcb       31,30,31,31
+                    fcb       30,31,30,31
 
 *****************************************
 * clock initialization
 *****************************************
-Entry               PSHS      CC,DP
-                    CLRA
-                    TFR       A,DP
+Entry               pshs      CC,DP
+                    clra
+                    tfr       A,DP
 
-                    SETDP     $00
+                    setdp     $00
 
-                    ORCC      #IntMasks
-                    LDA       #TPS      Init ticks per second (must be >= 5)
-                    STA       <D.TSec
-                    STA       <D.TicK
-                    LDA       #1        Init ticks per time slice
-                    STA       <D.TSlice
-                    STA       <D.Slice
-                    CLR       MISTIC    Init missed ticks counter
+                    orcc      #IntMasks
+                    lda       #TPS      Init ticks per second (must be >= 5)
+                    sta       <D.TSec
+                    sta       <D.TicK
+                    lda       #1        Init ticks per time slice
+                    sta       <D.TSlice
+                    sta       <D.Slice
+                    clr       MISTIC    Init missed ticks counter
 
-                    LEAX      <ClkSrv,PCR
-                    STX       D.IRQ
+                    leax      <ClkSrv,PCR
+                    stx       D.IRQ
 
-                    LDA       #$70      Set timer to count using 3.6864 mhz
-                    JSR       [DACRON]  . crystal clock /16
+                    lda       #$70      Set timer to count using 3.6864 mhz
+                    jsr       [DACRON]  . crystal clock /16
 
-                    LDD       <Divide,PCR /11520 = 10 hz
-                    STD       Duart+6
-                    LDA       Duart+14  Restart timer
-                    LDA       Duart+15  Reset timer interrupt flag
+                    ldd       <Divide,PCR load timer constant
+                    std       Duart+6
+                    lda       Duart+14  Restart timer
+                    lda       Duart+15  Reset timer interrupt flag
 
-                    LDA       #$08      Enable timer interrupt
-                    JSR       [DINTON]
-                    PULS      CC        Unmask interrupts
+                    lda       #$08      Enable timer interrupt
+                    jsr       [DINTON]
+                    puls      CC        Unmask interrupts
 
-                    LEAY      <TIMSVC,PCR Add F$Time svc
-                    OS9       F$SSVC
-                    PULS      DP,PC     Restore dp
+                    leay      <TIMSVC,PCR Add F$Time svc
+                    os9       F$SSVC
+                    puls      DP,PC     Restore dp
 
 *******************************************
 * clock interrupt service routine
 *******************************************
-ClkSrv              LDA       Duart+5   Get Duart interrupt flags
-                    ANDA      ARTINT    Mask
-                    BITA      #$08      Mid timer generate interrupt?
-                    BNE       C10       .y
-                    JMP       [D.SvcIRQ] .n
-C10                 LDA       Duart+15  Reset timer interrupt flag
+ClkSrv              lda       Duart+5   Get Duart interrupt flags
+                    anda      ARTINT    Mask
+                    bita      #$08      Mid timer generate interrupt?
+                    bne       C10       .y
+                    jmp       [D.SvcIRQ] .n
+C10                 lda       Duart+15  Reset timer interrupt flag
 
-                    CLRA
-                    TFR       A,DP
+                    clra
+                    tfr       A,DP
 
-                    SETDP     $00
+                    setdp     $00
 
-                    LDB       MISTIC    Get number of missed ticks
-                    CLR       MISTIC    Reset missed tick counter
-                    INCB
+                    ldb       MISTIC    Get number of missed ticks
+                    clr       MISTIC    Reset missed tick counter
+                    incb
 
-C20                 CMPB      D.Tsec    Apply mistic to d_sec until mistic < d_tsec
-                    BLO       C25
-                    INC       D.Sec
-                    SUBB      D.TSec
-                    BNE       C20
+C20                 cmpb      D.Tsec    Apply mistic to d_sec until mistic < d_tsec
+                    blo       C25
+                    inc       D.Sec
+                    subb      D.TSec
+                    bne       C20
 
-C25                 CMPB      D.Tick    MISTIC < D_Tick?
-                    BHS       C30       .n
-                    NEGB      .y,       D.Tick = D_Tick - MISTIC
-                    ADDB      D.Tick
-                    STB       D.Tick
-                    BRA       C40
+C25                 cmpb      D.Tick    MISTIC < D_Tick?
+                    bhs       C30       .n
+                    negb                .y,       D.Tick = D_Tick - MISTIC
+                    addb      D.Tick
+                    stb       D.Tick
+                    bra       C40
 
-C30                 SUBB      D.Tick
-                    NEGB
-                    ADDB      D.Tsec
-                    STB       D.Tick
-                    INC       D.Sec
+C30                 subb      D.Tick
+                    negb
+                    addb      D.Tsec
+                    stb       D.Tick
+                    inc       D.Sec
 
-C40                 LDA       D.Sec     Normalize seconds
-                    CMPA      #59
-                    BLS       C95
-                    SUBA      #60
-                    STA       D.Sec
+C40                 lda       D.Sec     Normalize seconds
+                    cmpa      #59
+                    bls       C95
+                    suba      #60
+                    sta       D.Sec
 
-                    INC       D.Min     Increment and normalize minutes
-                    LDA       D.Min
-                    CMPA      #59
-                    BLS       C95
-                    CLR       D.Min
+                    inc       D.Min     Increment and normalize minutes
+                    lda       D.Min
+                    cmpa      #59
+                    bls       C95
+                    clr       D.Min
 
-                    INC       D.Hour    Increment and normalize hour
-                    LDA       D.Hour
-                    CMPA      #23
-                    BLS       C95
-                    CLR       D.Hour
+                    inc       D.Hour    Increment and normalize hour
+                    lda       D.Hour
+                    cmpa      #23
+                    bls       C95
+                    clr       D.Hour
 
-                    INC       D.Day     Increment and normalize day of month
-                    LEAX      Month,PCR
-                    LDA       D.Month
-                    LDB       A,X       Get days-in-this-month
-                    CMPA      #2        February?
-                    BNE       C50       .n
-                    LDA       D.Year    Year = 00?
-                    BEQ       C50       .y
-                    BITA      #$03      Leap year?
-                    BNE       C50       .n
-                    INCB      .y,       Increment days-in-this-month
-C50                 CMPB      D.Day
-                    BHS       C95
-                    LDA       #1
-                    STA       D.Day
+                    inc       D.Day     Increment and normalize day of month
+                    leax      Month,PCR
+                    lda       D.Month
+                    ldb       A,X       Get days-in-this-month
+                    cmpa      #2        February?
+                    bne       C50       .n
+                    lda       D.Year    Year = 00?
+                    beq       C50       .y
+                    bita      #$03      Leap year?
+                    bne       C50       .n
+                    incb                .y,       Increment days-in-this-month
+C50                 cmpb      D.Day
+                    bhs       C95
+                    lda       #1
+                    sta       D.Day
 
-                    INC       D.Month   Increment and normalize month
-                    LDA       D.Month
-                    CMPA      #12
-                    BLS       C95
-                    LDA       #1
-                    STA       D.Month
+                    inc       D.Month   Increment and normalize month
+                    lda       D.Month
+                    cmpa      #12
+                    bls       C95
+                    lda       #1
+                    sta       D.Month
 
-                    INC       D.Year    Increment year
+                    inc       D.Year    Increment year
 
-C95                 JMP       [D.Clock]
+C95                 jmp       [D.Clock]
 
 ****************************************
 * f$time svc code
 ****************************************
-GetTime             LDX       R$X,U
-                    LDD       D.Min     Move min/sec
-                    STD       4,X
-                    LDD       D.Day     Move day/hour
-                    STD       2,X
-                    LDD       D.Year    Move year/month
-                    STD       ,X
-                    CLRB      Clear     carry
-                    RTS
+GetTime             ldx       R$X,U
+                    ldd       D.Min     Move min/sec
+                    std       4,X
+                    ldd       D.Day     Move day/hour
+                    std       2,X
+                    ldd       D.Year    Move year/month
+                    std       ,X
+                    clrb                Clear     carry
+                    rts
 
                     emod
 ModLen              equ       *

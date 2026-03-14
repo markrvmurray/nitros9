@@ -2,8 +2,10 @@ include ../port.mak
 
 # Module directory
 MD		= ../modules
-# Commands directory
-CMDSDIR		= ../cmds
+
+AFLAGS		+= -I$(LEVEL1)/$(PORT)
+AFLAGS		+= -I$(LEVEL1)/modules
+ST29FLAGS	= $(AFLAGS) $(FLAGS)
 
 DEPENDS		= ./makefile
 
@@ -22,15 +24,15 @@ FLOPPY_80D	= $(MD)/sdisk29.dr \
 RBDW		= $(MD)/rbdw.dr $(MD)/dwio_mc2681.sb \
 		$(MD)/x0.dd $(MD)/x1.dd $(MD)/x2.dd $(MD)/x3.dd
 
-CONSOLE_DRV	= $(MD)/mc2681.dr $(MD)/term_mc2681.dd # $(MD)/t1_mc2681.dd
+CONSOLE_DRV	= $(MD)/mc2681.dr $(MD)/term_mc2681.dd
 
-SCDWV_NET       = $(MD)/n_scdwv.dd $(MD)/n1_scdwv.dd $(MD)/n2_scdwv.dd \
+SCDWV_NET	= $(MD)/n_scdwv.dd $(MD)/n1_scdwv.dd $(MD)/n2_scdwv.dd \
 		$(MD)/n3_scdwv.dd $(MD)/n4_scdwv.dd $(MD)/n5_scdwv.dd \
 		$(MD)/n6_scdwv.dd $(MD)/n7_scdwv.dd $(MD)/n8_scdwv.dd \
 		$(MD)/n9_scdwv.dd $(MD)/n10_scdwv.dd $(MD)/n11_scdwv.dd \
 		$(MD)/n12_scdwv.dd $(MD)/n13_scdwv.dd $(MD)/midi_scdwv.dd
 
-SCDWP           = $(MD)/scdwp.dr $(MD)/p_scdwp.dd
+SCDWP		= $(MD)/scdwp.dr $(MD)/p_scdwp.dd
 
 PIPE		= $(MD)/pipeman.mn $(MD)/piper.dr $(MD)/pipe.dd
 
@@ -88,7 +90,7 @@ BOOTFILES	= bootfile_st2900_40dd bootfile_st2900_80dd bootfile_st2900_dd_dw boot
 
 ALLOBJS		= $(BOOTFILES) $(KERNEL)
 
-# ST2900 magic. Consult the source and the manuals!
+# ST-2900 magic: boot module starts at $FDF3, FEXX data ends at $FF00
 BOOT_START	= 0xFDF3
 FEXX_END	= 0xFF00
 
@@ -106,25 +108,24 @@ bootfile_st2900_dd_dw: $(BOOTFILE_ST2900_DD_DW) $(DEPENDS)
 bootfile_st2900_dw: $(BOOTFILE_ST2900_DW) $(DEPENDS)
 	$(MERGE) $(BOOTFILE_ST2900_DW)>$@
 
-# ST-2900 Boot block; contains boot_st2900, filler, boot_st2900_data
+# ST-2900 Boot block: boot_st2900 + zero padding + FEXX data
 boot_block: $(BOOT_BLOCK)
 	$(MERGE) $(BOOT_BLOCK) > $@
 
-# ST-2900 FEXX data block
+# ST-2900 FEXX data block (raw binary at $FEC8)
 boot_st2900_data: boot_st2900_data.asm
 	$(ASROM) -I$(LEVEL1)/$(PORT) $(ASOUT)$@ $< $(ST29FLAGS)
 
-# ST-2900 Boot/FEXX padding
+# ST-2900 Boot/FEXX zero padding (fills gap between boot module end and FEXX data start)
 boot_fexx_padding: $(MD)/boot_st2900 boot_st2900_data
-	$(ASROM) $(ASOUT)$@ $< $(ST29FLAGS)
 	BOOT_LENGTH=$(shell stat -f%z $(MD)/boot_st2900) ;\
 	FEXX_LENGTH=$(shell stat -f%z boot_st2900_data) ;\
 	BOOT_END=$$(($(BOOT_START)+$${BOOT_LENGTH})) ;\
 	FEXX_START=$$(($(FEXX_END)-$${FEXX_LENGTH})) ;\
 	PADDING=$$(($${FEXX_START}-$${BOOT_END})) ;\
-	dd if=/dev/zero of=boot_fexx_padding bs=1 count=$${PADDING}
+	dd if=/dev/zero of=$@ bs=1 count=$${PADDING}
 
-# ST-2900 Kernel
+# ST-2900 Kernel (padded to exactly 3840 bytes = $F000..$FEFF)
 kernel_st2900: $(KERNEL_PARTS) $(DEPENDS)
 	$(MERGE) $(KERNEL_PARTS) > $@
 	$(PADROM) -b 3840 $@

@@ -1,7 +1,7 @@
-               use       sys6809l2.as
+                    use       sys6809l2.as
 
-               section   _constant
+                    section   _constant
 
-               use       ../defs/st2900.d
+                    use       ../defs/st2900.d
 
-               endsect
+                    endsect

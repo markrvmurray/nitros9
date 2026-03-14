@@ -1,4 +1,4 @@
-* Timeout is implemented. Its a countdown of $7FFF wih no delay while
+* Timeout is implemented. Its a countdown of $7FFF with no delay while
 * checking for available data in the DUART.
 DWRead              pshs      d,x,u
                     pshs      cc
@@ -9,7 +9,7 @@ DWRead              pshs      d,x,u
                   ENDC
 *
 D@00                ldd       #$7FFF    ; initialise timeout
-                    pshs      d
+                    pshs      d         ; push timeout counter
 D@01                ldb       SR.D+8
                     andb      #%00000001
                     bne       D@02      ; byte waiting?
@@ -17,17 +17,18 @@ D@01                ldb       SR.D+8
                     subd      #1
                     std       ,s
                     bne       D@01      ; if not timeout
-                    leas      2,s       ; no longer need timeout counter
+                    leas      2,s       ; pop timeout counter
                     bra       D@Error
 *
-D@02                leas      2,s       ; no longer need timeout counter
-                    ldb       TXRX.D+8
+D@02                ldb       TXRX.D+8
                     stb       ,u+
                     abx                 ; accumulate checksum
-                    ldd       #$7FFF    ; reset timeout
-                    std       ,s
                     leay      ,-y
-                    bne       D@00      ; next byte
+                    beq       D@Done    ; all bytes received
+                    ldd       #$7FFF    ; reset timeout for next byte
+                    std       ,s
+                    bra       D@01      ; next byte
+D@Done              leas      2,s       ; pop timeout counter
                     bra       D@OK
 *
 D@Error             puls      cc

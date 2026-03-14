@@ -54,16 +54,16 @@ InitSiz             equ       *
 *
 * name strings
 *
-                    IFDEF     TNum      From makefile
+                    ifdef     TNum      From makefile
                   IFEQ    TNum
 ModName             fcs       'T0'
-                    ENDIF
+                    endif
                   IFEQ    TNum-1
 ModName             fcs       'T1'
-                    ENDIF
+                    endif
                   ELSE
 ModName             fcs       'TERM'    Module name
-                    ENDIF
+                    endif
 
 MgrName             fcs       'SCF'     File manager name
 DrvName             fcs       'MC2681'  Device driver name
