@@ -73,6 +73,76 @@ OPRset.D            equ       Duart+14  DUART set output port bits command regis
 OPRrst.D            equ       Duart+15  DUART reset output port bits command register
 
 VIABase             equ       $FF40     R6522 VIA base address
+ORB.V               equ       VIABase+0 VIA output register B
+IRB.V               equ       VIABase+0 VIA input register B
+DDRB.V              equ       VIABase+2 VIA data direction register B
+SR.V                equ       VIABase+10 VIA shift register
+ACR.V               equ       VIABase+11 VIA auxiliary control register
+
+**********************************
+* NVRAM/RTC board SPI definitions
+*
+* chip select codes for VIA port B bits 0-3
+M.CS00              equ       0         nCS0 SRAM U3
+M.CS01              equ       1         nCS1 SRAM U4
+M.CS02              equ       2         nCS2 SRAM U5
+M.CS03              equ       3         nCS3 SRAM U6
+M.CS04              equ       4         nCS4
+M.CS05              equ       5         nCS5
+M.CS06              equ       6         nCS6
+M.CS07              equ       7         nCS7 RTC U10
+M.CS08              equ       8         nCS8 EEPROM U11
+M.CS09              equ       9         nCS9 EEPROM U12
+M.CS10              equ       10        CS10 RTC eval board U9
+* VIA port B bit masks
+M.DEVS              equ       $0F       chip select mask (nCS0..nCS9)
+M.RD                equ       $10       read buffer enable (active low)
+M.LED               equ       $20       activity LED (active low)
+M.IDLE              equ       $40       SCLK idle state
+* SPI command codes
+M.WrDat             equ       $02       write data
+M.RdDat             equ       $03       read data
+M.RdSt              equ       $05       read status register (25CSM04)
+M.WrEn              equ       $06       write enable
+* VIA shift register ACR mode bits
+M.SRin              equ       $08       shift in at system clock / 2
+M.SRout             equ       $18       shift out at system clock / 2
+M.SR                equ       $1C       shift register mode mask
+* NVRAM driver configuration flags (stored in module body)
+W.ClkTks            equ       %01000000
+W.Ndsk              equ       %00100000
+W.Nrtc              equ       %00010000
+
+**********************************
+* NVRAM device type bits for IT.TYP/PD.TYP
+* (redefine unused bits in the standard RBF type byte)
+*
+TYP.NVRM            equ       %10000000 NVRAM device (vs floppy/hard)
+TYPN.SRM            equ       %00000000 23LCV1024 SRAM
+TYPN.EEP            equ       %00000100 EEPROM device
+TYPN.EE4            equ       %00001000 25CSM04 (with ECC)
+
+**********************************
+* NVRAM GetStat/SetStat function codes
+*
+SS.Stat4            equ       $D8       read 25CSM04 EEPROM status register
+SS.RtcWr            equ       $D9       write to RTC register(s)
+SS.RtcRd            equ       $DA       read from RTC register(s)
+
+**********************************
+* NVRAM direct page variables
+* (allocated in unused direct page space)
+*
+D.SpiSel            equ       $E0       (1) current SPI chip select code
+D.SpiLSN            equ       $E1       (2) current SPI chip LSN
+D.SpiLED            equ       $E3       (1) LED down-counter
+D.SpiBsy            equ       $E4       (1) SPI busy flag
+
+**********************************
+* LSN 0 Volume Identification Sector offsets for NVRAM checksum
+*
+DD.FIL              equ       $5F       end of DD.NAM+DD.OPT area
+DD.CHK              equ       $60       16-bit VIS checksum
 
                   IFEQ    FEXXBlock
 SECSIZ              equ       $FEC8     (2) Default sector size for direct r/w

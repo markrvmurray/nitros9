@@ -15,6 +15,7 @@ CMDS		= asm attr backup binex build calldbg cmp copy cputype \
 		display dmode dsave dspeed dump echo edit error exbin \
 		free help ident iniz irqs link list load login makdir \
 		megaread mdir merge mfree padrom park printerr procs prompt pwd pxd \
+		nvformat nvstatus \
 		rename save setime sformat shellplus shell_21 sleep sysgo2 \
 		tee tmode touch tsmon unlink verify xmode
 

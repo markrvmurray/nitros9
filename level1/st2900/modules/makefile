@@ -13,6 +13,7 @@ CLOCKS		= clock_st2900 clock2_dw
 RBF		= rbf.mn \
 		sdisk29.dr \
 		rbdw.dr dwio_mc2681.sb \
+		nvramdrv.dr nvram29desc.dd \
 		ddd0_35s.dd  d0_35s.dd  d1_35s.dd  d2_35s.dd  d3_35s.dd \
 		ddd0_40d.dd  d0_40d.dd  d1_40d.dd  d2_40d.dd  d3_40d.dd \
 			    sd0_40d.dd sd1_40d.dd sd2_40d.dd sd3_40d.dd \
@@ -200,6 +201,13 @@ n13_scdwv.dd: scdwvdesc.asm
 
 midi_scdwv.dd: scdwvdesc.asm
 	$(AS) $< $(ASOUT)$@ $(AFLAGS) -DAddr=14
+
+# NVRAM driver and descriptors (S0 + E0 descriptors in one file)
+nvramdrv.dr: nvramdrv.asm
+	$(AS) $< $(ASOUT)$@ $(AFLAGS)
+
+nvram29desc.dd: nvram29desc.asm
+	$(AS) $< $(ASOUT)$@ $(AFLAGS)
 
 # Clocks
 clock_st2900: clock_st2900.asm
