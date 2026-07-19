@@ -36,6 +36,10 @@
                     use dwwrite/dwwrite_sy6551.asm
                     endc
 
+                    ifne      MC2681
+                    use dwwrite/dwwrite_mc2681.asm
+                    endc
+
                     ifne      JMCPBCK
                     use dwwrite/dwwrite_jmcpbck.asm
                     endc
@@ -52,7 +56,7 @@
                     use       dwwrite/dwwrite_picothing.asm
                   ENDC
 
-                  IFEQ    BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+BAUD38400+wildbits+MEGAMINIMPI+picothing
+                  IFEQ    BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+MC2681+BAUD38400+wildbits+MEGAMINIMPI+picothing
                     ifeq      H6309
                     use dwwrite/dwwrite_bb6809.asm
                     else
