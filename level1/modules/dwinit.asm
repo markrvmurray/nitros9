@@ -39,6 +39,10 @@
                     use       dwinit/dwinit_picothing.asm
                   ENDC
 
-                  IFEQ    BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+wildbits+MEGAMINIMPI+atari+picothing
+                  IFNE    MC2681
+                    use       dwinit/dwinit_mc2681.asm
+                  ENDC
+
+                  IFEQ    BECKER+JMCPBCK+ARDUINO+BECKERTO+SY6551N+MC2681+wildbits+MEGAMINIMPI+atari+picothing
                     use dwinit/dwinit_bb.asm
                     endc
