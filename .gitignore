@@ -28,6 +28,10 @@ os9kernel
 os9kernel_dw
 rel_picothing
 rel_picothing.srec
+kernel_st2900
+boot_block
+boot_fexx_padding
+boot_st2900_data
 helpmsg
 *.dsk
 *.srec
