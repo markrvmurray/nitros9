@@ -2,7 +2,7 @@ vpath %.as $(NITROS9DIR)/lib:$(NITROS9DIR)/lib/alib
 
 LIB_NAMES ?= libnos96809l1.a libnos96809l2.a libnos96309l2.a libnet.a libalib.a \
 	libcoco.a libcoco3.a libcoco3_6309.a libdragon.a libatari.a \
-	libmc09.a libwildbitsl1.a libwildbitsl2.a
+	libmc09.a libwildbitsl1.a libwildbitsl2.a libst2900.a
 LIB_TARGETS = $(addprefix $(LIBDIR)/,$(LIB_NAMES))
 
 ALIB_OBJS = asc_bin.o b09strlen.o bin_asc.o bin_dec.o bin_hex.o \
@@ -56,6 +56,9 @@ $(LIBDIR)/libwildbitsl1.a: $(OBJDIR)/wildbitsl1.o | $(LIBDIR)
 	$(LWAR) $@ $?
 
 $(LIBDIR)/libwildbitsl2.a: $(OBJDIR)/wildbitsl2.o | $(LIBDIR)
+	$(LWAR) $@ $?
+
+$(LIBDIR)/libst2900.a: $(OBJDIR)/st2900.o | $(LIBDIR)
 	$(LWAR) $@ $?
 
 $(LIBDIR)/libalib.a: $(ALIB_OBJ_TARGETS) | $(LIBDIR)
