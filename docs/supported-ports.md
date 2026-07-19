@@ -14,6 +14,7 @@ The maintained source tree currently includes these ports:
 | Corsham 6809 SS-50 | Level 1 | 6809 |
 | Wildbits 6809 | Levels 1 and 2 | 6809 |
 | Pico-Thing | Levels 1 and 2 | 6809 and 6309 |
+| Sardis ST-2900 | Level 1 | 6809 and 6309 |
 
 The recipe directories are the authoritative list of routinely buildable
 products and currently cover a subset of these ports. Some platform source
