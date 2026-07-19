@@ -1,0 +1,14 @@
+@SFORMAT
+Syntax: Format <devname> [Opts]
+Usage : Initializes a NitrOS-9 diskette
+Opts  :
+  S/D - Single/Double density
+  R   - Ready
+  "disk name"       
+  1/2 - number of sides
+  48  - 48 TPI
+  'No. of cylinders'   (in decimal)
+  :Interleave value:   (in decimal)
+  /Cluster size/       (in decimal)
+  /D[0-9] implies CoCo format
+  /SD[0-4] implies standard format
